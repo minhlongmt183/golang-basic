@@ -3,7 +3,6 @@ package main
 /* A simple tcp client. This is nowhere near functional or complete, I am simply keeping it here for now.*/
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
@@ -11,6 +10,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) != 2 {
+
+		fmt.Println("USAGE: ./tcpclient <command_>")
+		return
+	}
 	var tcpPort string = "5555"
 	connection, err := net.Dial("tcp", "127.0.0.1:"+tcpPort) //connect to the socket
 	if err != nil {
@@ -24,9 +28,10 @@ func main() {
 	//fmt.Print(message)
 
 	//read input from standard in
-	reader := bufio.NewReader(os.Stdin)
-	//fmt.Print("Text to send: ")
-	text, _ := reader.ReadString('\n')
+	//reader := bufio.NewReader(os.Stdin)
+	////fmt.Print("Text to send: ")
+	//text, _ := reader.ReadString('\n')
+	text := os.Args[1]
 
 	//write input to tcp socket
 	fmt.Fprintf(connection, text+"\n")
