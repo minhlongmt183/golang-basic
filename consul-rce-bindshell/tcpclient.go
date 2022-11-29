@@ -22,15 +22,6 @@ func main() {
 	}
 	defer connection.Close()
 
-	//receive reply from server and print
-	//message, _ := bufio.NewReader(connection).ReadString('\n') //waits and receives a reply from the server
-	////fmt.Print("Message from server: " + message)
-	//fmt.Print(message)
-
-	//read input from standard in
-	//reader := bufio.NewReader(os.Stdin)
-	////fmt.Print("Text to send: ")
-	//text, _ := reader.ReadString('\n')
 	text := os.Args[1]
 
 	//write input to tcp socket
@@ -49,6 +40,6 @@ func main() {
 		}
 	}
 	//fmt.Print("Message from server: " + message)
-	fmt.Fprintf(os.Stdout, string(recvBuf))
+	fmt.Println(string(recvBuf))
 
 }
