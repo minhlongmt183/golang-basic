@@ -51,8 +51,9 @@ func newhandleConnection(connection1 net.Conn, connection2 net.Conn) {
 	//read input from standard in
 	println("new connection")
 	reader := bufio.NewReader(connection2)
-	//fmt.Print("Text to send: ")
 	text, _ := reader.ReadString('\n')
+
+	fmt.Print("Text to send: ", text)
 
 	//write input to tcp socket
 	fmt.Fprintf(connection1, text+"\n") //formats and writes to a given io.Writer object, in this case the connection
