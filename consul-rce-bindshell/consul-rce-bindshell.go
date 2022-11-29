@@ -78,7 +78,7 @@ func newhandleConnection(connection1 net.Conn, connection2 net.Conn) {
 
 	//message, _ := bufio.NewReader(connection1).ReadString('\n') //waits and receives a reply from the server
 	//fmt.Print("Message from server: " + message)
-	//fmt.Print("message is: ", string(recvBuf))
+	fmt.Print("message is: ", string(recvBuf))
 	connection2.Write(recvBuf)
 
 	//_, err := connection2.Write([]byte("connection successful, " +
