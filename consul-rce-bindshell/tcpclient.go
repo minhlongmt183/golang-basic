@@ -49,6 +49,6 @@ func main() {
 		}
 	}
 	//fmt.Print("Message from server: " + message)
-	fmt.Println(string(recvBuf))
+	fmt.Fprintf(os.Stdout, string(recvBuf))
 
 }
