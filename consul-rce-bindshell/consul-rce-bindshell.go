@@ -68,7 +68,7 @@ func newhandleConnection(connection1 net.Conn, connection2 net.Conn) {
 	_, err = connection1.Read(recvBuf[:]) // recv data
 	if err != nil {
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-			connection2.Write([]byte(""))
+			connection2.Write([]byte("time out"))
 			// time out
 		} else {
 			log.Println("read error:", err)
